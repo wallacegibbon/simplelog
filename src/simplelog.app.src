@@ -1,0 +1,12 @@
+{application, simplelog,
+ [{description, "A simple and flexible text logger"},
+  {vsn, "0.1.0"},
+  {modules, [simplelog_app, simplelog_sup, simplelog]},
+  {registered, [simplelog]},
+
+  {applications, [kernel, stdlib]},
+  {mod, {simplelog_app, []}},
+
+  {licenses, ["Apache 2.0"]},
+  {env,[]},
+  {links, []}]}.
