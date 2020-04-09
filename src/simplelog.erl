@@ -37,8 +37,7 @@ handle_cast({record, String}, #{filename := Filename, file := File,
 	    ok = file:close(File),
 	    {ok, NewFile} = file:open(CurFilename, [append]),
 	    ok = io:format(NewFile, "~s~n", [String]),
-	    {noreply, State#{filename := CurFilename,
-			     file := NewFile}};
+	    {noreply, State#{filename := CurFilename, file := NewFile}};
 	true ->
 	    ok = io:format(File, "~s~n", [String]),
 	    {noreply, State}
@@ -47,6 +46,7 @@ handle_cast({record, String}, #{filename := Filename, file := File,
 handle_cast(Msg, State) ->
     io:format("unknown cast ~p~n", [Msg]),
     {noreply, State}.
+
 
 handle_call({basename, Basename}, _From, #{filename := Filename,
 					   file := File,
@@ -100,14 +100,11 @@ init(#{commontab := Commontab}) ->
 		   commontab => Commontab}}
     end.
 
-terminate(Reason, State) ->
-    io:format("~p is terminated: ~p~n", [?MODULE, Reason]),
-    ensureclose(State),
-    ok.
-
-ensureclose(#{filename := Filename, file := File})
+terminate(Reason, #{filename := Filename, file := File})
   when Filename =/= "" ->
-    ok = file:close(File).
+    ok = file:close(File);
+terminate(Reason, State) ->
+    ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
