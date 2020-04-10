@@ -24,7 +24,7 @@ init(Configs) ->
 
 start_link(Configs) ->
     CommonTab = ets:new(simplelog, [set, public]),
-    true = ets:insert(CommonTab, {initstate, #{}}),
+    true = ets:insert(CommonTab, {top_state, #{}}),
     supervisor:start_link({local, ?SERVER}, ?MODULE,
 			  Configs#{commontab => CommonTab}).
 

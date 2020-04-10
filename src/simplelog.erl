@@ -48,9 +48,9 @@ handle_cast(Msg, State) ->
     {noreply, State}.
 
 
-handle_call({basename, Basename}, _From, #{filename := Filename,
-					   file := File,
-					   commontab := Commontab} = State) ->
+handle_call({basename, Basename}, _From,
+	    #{filename := Filename, file := File,
+	      commontab := Commontab} = State) when Filename =/= "" ->
     CurFilename = current_logname(Basename),
     if
 	CurFilename =/= Filename ->
@@ -58,11 +58,16 @@ handle_call({basename, Basename}, _From, #{filename := Filename,
 	    {ok, NewFile} = file:open(CurFilename, [append]),
 	    NewState = State#{filename := CurFilename, file := NewFile,
 			      basename := Basename},
-	    true = ets:insert(Commontab, {initstate, NewState}),
+	    true = ets:insert(Commontab,
+			      {top_state,
+			       maps:without([commontab], NewState)}),
 	    {reply, changed, NewState};
 	true ->
 	    {reply, nochange, State}
     end;
+
+handle_call({basename, _}, _From, State) ->
+    {reply, unready, State};
 
 handle_call({prepare, Basename}, _From, #{filename := "",
 					  commontab := Commontab} = State) ->
@@ -70,7 +75,8 @@ handle_call({prepare, Basename}, _From, #{filename := "",
     {ok, File} = file:open(Filename, [append]),
     NewState = State#{filename := Filename, file := File,
 		      basename := Basename},
-    true = ets:insert(Commontab, {initstate, NewState}),
+    true = ets:insert(Commontab, {top_state,
+				  maps:without([commontab], NewState)}),
     {reply, ok, NewState};
 
 handle_call({prepare, _}, _From, State) ->
@@ -80,7 +86,7 @@ handle_call(stop, _From, State) ->
     {stop, normal, stopped, State};
 
 handle_call(die, _From, State) ->
-    command = die.
+    State = impossible_state.
 
 handle_info(_Info, State) ->
     {noreply, State}.
@@ -91,19 +97,19 @@ start_link(Configs) ->
 
 init(#{commontab := Commontab}) ->
     process_flag(trap_exit, true),
-    case ets:lookup(Commontab, initstate) of
-	[{initstate, #{filename := Name} = State}] when Name =/= "" ->
+    case ets:lookup(Commontab, top_state) of
+	[{top_state, #{filename := Name} = State}] when Name =/= "" ->
 	    {ok, File} = file:open(Name, [append]),
-	    {ok, State#{file := File}};
-	Any ->
+	    {ok, State#{file := File, commontab => Commontab}};
+	_ ->
 	    {ok, #{filename => "", file => 0, basename => "",
 		   commontab => Commontab}}
     end.
 
-terminate(Reason, #{filename := Filename, file := File})
+terminate(_Reason, #{filename := Filename, file := File})
   when Filename =/= "" ->
     ok = file:close(File);
-terminate(Reason, State) ->
+terminate(_Reason, _) ->
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
