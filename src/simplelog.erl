@@ -9,8 +9,8 @@
 
 -export([record/1, change_basename/1, prepare/1]).
 
--define(SERVER, ?MODULE).
 
+-define(SERVER, ?MODULE).
 
 record(String) when is_list(String); is_binary(String) ->
     gen_server:cast(?MODULE, {record, String}).
@@ -20,6 +20,9 @@ change_basename(Basename) ->
 
 prepare(Basename) ->
     gen_server:call(?MODULE, {prepare, Basename}).
+
+start_link(Configs) ->
+    gen_server:start_link({local, ?SERVER}, ?MODULE, Configs, []).
 
 stop() ->
     gen_server:call(?MODULE, stop).
@@ -87,9 +90,6 @@ handle_call(stop, _From, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-
-start_link(Configs) ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, Configs, []).
 
 init(#{commontab := Commontab}) ->
     process_flag(trap_exit, true),
