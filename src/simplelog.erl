@@ -2,10 +2,12 @@
 
 -behaviour(gen_server).
 
--export([start_link/1, init/1, terminate/2, code_change/3,
-	 handle_call/3, handle_cast/2, handle_info/2]).
+-export([handle_call/3, handle_cast/2, handle_info/2,
+	 init/1, terminate/2, code_change/3]).
 
--export([record/1, change_basename/1, prepare/1, stop/0, die/0]).
+-export([start_link/1, stop/0]).
+
+-export([record/1, change_basename/1, prepare/1]).
 
 -define(SERVER, ?MODULE).
 
@@ -21,9 +23,6 @@ prepare(Basename) ->
 
 stop() ->
     gen_server:call(?MODULE, stop).
-
-die() ->
-    gen_server:call(?MODULE, die).
 
 handle_cast({record, _}, #{filename := ""} = State) ->
     io:format("simplelog is not prepared~n"),
@@ -83,10 +82,7 @@ handle_call({prepare, _}, _From, State) ->
     {reply, already, State};
 
 handle_call(stop, _From, State) ->
-    {stop, normal, stopped, State};
-
-handle_call(die, _From, State) ->
-    State = impossible_state.
+    {stop, normal, stopped, State}.
 
 handle_info(_Info, State) ->
     {noreply, State}.
