@@ -14,13 +14,12 @@
 -define(SERVER, ?MODULE).
 
 child_specs(Configs) ->
-    [#{id => simplelog, start => {simplelog, start_link, [Configs]},
-       restart => permanent, shutdown => 10000, type => worker,
-       modules => [simplelog]}].
+    [{simplelog, {simplelog, start_link, [Configs]}, permanent, 10000,
+      worker, [simplelog]}].
 
 init(Configs) ->
-    SupFlags = #{strategy => one_for_all, intensity => 3, period => 3},
-    {ok, {SupFlags, child_specs(Configs)}}.
+    {ok, {{one_for_one, 3, 3}, child_specs(Configs)}}.
+
 
 start_link(Configs) ->
     CommonTab = ets:new(simplelog, [set, public]),
