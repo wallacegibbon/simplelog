@@ -1,6 +1,6 @@
 {application, simplelog,
  [{description, "A simple and flexible text logger"},
-  {vsn, "0.1.3"},
+  {vsn, "0.1.4"},
   {modules, [simplelog_app, simplelog_sup, simplelog]},
   {registered, [simplelog]},
 

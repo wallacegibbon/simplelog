@@ -13,12 +13,12 @@
 
 -define(SERVER, ?MODULE).
 
-child_specs(Configs) ->
+child_list(Configs) ->
     [{simplelog, {simplelog, start_link, [Configs]}, permanent, 10000,
       worker, [simplelog]}].
 
 init(Configs) ->
-    {ok, {{one_for_one, 3, 3}, child_specs(Configs)}}.
+    {ok, {{one_for_one, 3, 3}, child_list(Configs)}}.
 
 
 start_link(Configs) ->
